@@ -2,7 +2,9 @@ package ui;
 import domain.User;
 
 import java.util.ArrayList;
+import java.util.Random;
 import java.util.Scanner;
+
 public class Login {
 //    登录注册的主页面
     public void start(){
@@ -36,6 +38,53 @@ public class Login {
 //    登录操作
     public void login(ArrayList<User> list){
         System.out.println("用户选择了登录操作");
+//        1.判断用户是否存在或者是否被禁用
+        Scanner sc=new Scanner(System.in);
+        System.out.println("请输入用户名:");
+        String username=sc.next();
+//        是否存在
+        if(!contains(list,username)){
+            System.out.println("用户名"+username+"未注册！");
+            return;
+        }
+//        是否被禁用
+        int index=findIndex(list,username);
+        User u=list.get(index);
+        if(!u.isStatus()){
+            System.out.println("用户"+u.getUsername()+"已经被禁用！请联系zwy客服处理！");
+            return;
+        }
+        for (int i=0;i<3;i++) {
+            System.out.println("请输入密码：");
+            String password = sc.next();
+//         验证码
+            while (true) {
+                String rightCode=getCode();
+                System.out.println("正确的为验证码："+rightCode);
+                System.out.println("请输入验证码：");
+                String code = sc.next();
+                if(rightCode.equalsIgnoreCase(code)){
+                    break;
+                }else {
+                    System.out.println("验证码输入错误！再试一次吧！");
+                    System.out.println("——————————————");
+                }
+            }
+//        验证密码是否正确
+            String rightPassword=u.getPassword();
+            if(rightPassword.equals(password)){
+                System.out.println("密码正确！登录成功，游戏启动！！！！");
+                break;
+            }else {
+                System.out.println("密码错误，你还有"+(2-i)+"次机会");
+                if(i==2){
+                    u.setStatus(false);
+                    System.out.println("账户"+u.getUsername()+"已经被锁定！请联系zwy客服~");
+                    return;
+                }
+            }
+        }
+
     }
 //    注册操作
     public void register(ArrayList<User> list){
@@ -127,5 +176,44 @@ public class Login {
             }
         }
         return true;
+    }
+//    找集合中username的索引
+    public int findIndex(ArrayList<User> list,String name){
+        for (int i = 0; i < list.size(); i++) {
+            User u=list.get(i);
+            if(u.getUsername().equals(name)){
+                return i;
+            }
+        }
+        return -1;
+    }
+    public static String getCode(){
+//        获取验证码
+
+//        第一步：将需要的字母都放进一个容器当中
+        ArrayList<Character> list=new ArrayList<>();
+        for (int i = 0; i < 26; i++) {
+            list.add((char)('a'+i));
+            list.add((char)('A'+i));
+        }
+//        第二步：从容器中随机获取四次字母
+        StringBuilder sb=new StringBuilder();
+        Random r=new Random();
+        for (int i = 0; i < 4; i++) {
+            int index=r.nextInt(list.size());
+            Character c = list.get(index);
+            sb.append(c);
+        }
+//        第三步：生成一个0~9的数字
+        sb.append(r.nextInt(10));
+//        第四步：将里面的顺序打乱，前面四个的字母其实已经是随机的了，只需将数字与前面四位交换位置即可
+        char[] arr=sb.toString().toCharArray();
+        int i=r.nextInt(arr.length);
+        char temp=arr[i];
+        arr[i]=arr[arr.length-1];
+        arr[arr.length-1]=temp;
+//        第五步：把数组转变为String即可
+        String code=new String(arr);
+        return code;
     }
 }
