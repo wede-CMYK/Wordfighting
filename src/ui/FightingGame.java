@@ -4,6 +4,7 @@ import domain.Character;
 import domain.EnemyCharacter;
 import domain.HeroCharacter;
 
+import java.sql.SQLOutput;
 import java.util.ArrayList;
 import java.util.Random;
 import java.util.Scanner;
@@ -53,11 +54,55 @@ public class FightingGame {
                 System.out.println("第"+round+"回合开始！");
                 System.out.println(getHealthBar(player.name,player.HP,player.maxHP));
                 System.out.println(getHealthBar(enemy.name,enemy.HP,enemy.maxHP));
-
+//                玩家回合
+                playerTurn(player,enemy);
+                if(!enemy.isAlive()){
+                    System.out.println("恭喜你击败了 "+enemy.name+" !");
+                    wins++;
+                    break;
+                }
+//                敌人回合
+                enemyTurn(enemy,player);
+                if(!player.isAlive()){
+                    System.out.println("💀你被 "+enemy.name+" 击败了");
+                    break;
+                }
+                round++;
             }
-
+            if(player.isAlive()){
+                int healHP = r.nextInt(21)+20;
+                player.heal(healHP);
+                System.out.println("❤战斗结束，恭喜你恢复了"+healHP+"点生命值");
+                System.out.println("🏆当前胜场："+wins);
+                System.out.println("————————————————————");
+                wins++;
+                if(wins%3==0){
+                    System.out.println("⭐恭喜你！胜场积累足够，获得了属性提升！");
+                    player.maxHP+=30;
+                    player.attack+=5;
+                    player.defense+=3;
+                    System.out.println("你的属性为：");
+                    player.show();
+                }
+                System.out.println("是否继续迎接下一个更强的对手！(y/n)");
+                Scanner sc=new Scanner(System.in);
+                String choose=sc.next();
+                if("y".equalsIgnoreCase(choose)){
+                    count++;
+                }else if("n".equalsIgnoreCase(choose)){
+                    break;
+                }else {
+                    System.out.println("没有这个选项，游戏继续~");
+                    count++;
+                }
+            }
         }
-
+//        最终结算
+        System.out.println("——————————————————————————————————");
+        System.out.println("游戏结束！！！！！！");
+        System.out.println("总胜场："+wins);
+        System.out.println("感谢游玩文字版格斗游戏！！！我是致未远！！");
+        System.exit(0);
     }
 //    创建玩家角色
     public HeroCharacter createPlayerCharacter(String username){
@@ -115,5 +160,88 @@ public class FightingGame {
         }
         sb.append("]").append(HP).append("/").append(maxHP).append(" HP");
         return sb.toString();
+    }
+//    玩家回合选择行动
+    public void playerTurn(HeroCharacter player,EnemyCharacter enemy){
+        System.out.println("——————你的回合——————");
+        System.out.println("1.普通攻击");
+        System.out.println("2.强力一击");
+        System.out.println("3.生命汲取");
+        Scanner sc=new Scanner(System.in);
+        String choose = sc.next();
+        switch(choose){
+            default:
+                System.out.println("无效操作，默认使用普通攻击");
+            case "1":
+                int damage = calculateDamage(player.attack, enemy.defense);
+                System.out.println("⚔️你对 "+enemy.name+" 使用普通攻击，造成了"+damage+"点伤害！");
+                enemy.takeDamage(damage);
+                break;
+            case "2":
+                if(player.HP>10){
+                    player.takeDamage(10);
+                    int damage1 = calculateDamage((int) (player.attack * 1.8), enemy.defense);
+                    System.out.println("💥消耗10HP，你对 "+enemy.name+" 使用了强力一击，造成 "+damage1+" 点伤害！");
+                    enemy.takeDamage(damage1);
+                }else System.out.println("生命值不足十点！攻击失败");
+                break;
+            case "3":
+                if(player.HP>10){
+                    player.takeDamage(10);
+                    Random r=new Random();
+                    int healHP = r.nextInt(21);
+                    player.heal(healHP);
+                    System.out.println("💚消耗十点生命值，回复了 "+healHP+"点生命~");
+                }else System.out.println("生命值不足十点！回复失败");
+        }
+    }
+//    敌人回合
+    public void enemyTurn(EnemyCharacter enmey,HeroCharacter player){
+        System.out.println("——————"+enmey.name+"的回合——————");
+        String action="普通攻击";
+        Random r=new Random(10);
+        int num = r.nextInt(10);
+        if(num>5){
+            action=enmey.skill;
+        }
+        switch (action){
+            case "普通攻击":
+                System.out.println(enmey.name+" 采取了 "+action);
+                int damage1 = calculateDamage(enmey.attack, player.defense);
+                System.out.println("💥"+enmey.name+" 对 你 使用普通攻击，造成了"+damage1+"点伤害！");
+                player.takeDamage(damage1);
+                break;
+            case "猛击":
+                System.out.println(enmey.name+" 采取了 "+action);
+                int damage2 = calculateDamage((int) (enmey.attack * 1.5), player.defense);
+                System.out.println("💥"+enmey.name+"对 你 使用了 "+action+"，造成 "+damage2+" 点伤害！");
+                player.takeDamage(damage2);
+                break;
+            case "快速攻击":
+                System.out.println(enmey.name+" 采取了 "+action);
+                int damage3=0;
+                for (int i=0;i<2;i++) {
+                    int temp = calculateDamage(enmey.attack/2, player.defense);
+                    damage3+=temp;
+                }
+                System.out.println("💥"+enmey.name+"对 你 使用了 "+action+"，造成 "+damage3+" 点伤害！");
+                player.takeDamage(damage3);
+                break;
+            case "防御姿态":
+                System.out.println(enmey.name+" 采取了 "+action);
+                enmey.defending=true;
+                System.out.println("🛡️"+enmey.name+" 摆出了防御姿态！");
+                break;
+            case "火球术":
+                System.out.println(enmey.name+" 采取了 "+action);
+                int damage4 = calculateDamage((int) (enmey.attack * 1.8), player.defense);
+                System.out.println("🔥"+enmey.name+"对你使用了火球术，造成 "+damage4+"点伤害！");
+                player.takeDamage(damage4);
+                break;
+        }
+    }
+//    用来计算双方战斗的时候，对对方造成的伤害
+    public int calculateDamage(int attack,int defense){
+        return attack>defense?attack-defense:1;
     }
 }
