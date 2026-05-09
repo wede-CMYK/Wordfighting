@@ -5,6 +5,7 @@ import domain.EnemyCharacter;
 import domain.HeroCharacter;
 
 import java.util.ArrayList;
+import java.util.Random;
 import java.util.Scanner;
 
 public class FightingGame {
@@ -24,6 +25,38 @@ public class FightingGame {
         enemyList.add(new EnemyCharacter("敏捷刺客",60,20,5,"快速攻击"));
         enemyList.add(new EnemyCharacter("重装坦克",120,10,20,"防御姿态"));
         enemyList.add(new EnemyCharacter("神秘法师",70,25,8,"火球术"));
+//        准备战斗
+        int count=1;//记录和第几个敌人进行战斗
+        int wins=0;//赢了几场
+        while(player.isAlive()){
+//            重置敌人属性点，敌人每场都回增加属性，用以增加游戏难度
+            if(wins!=0){
+                for (int i = 0; i < enemyList.size(); i++) {
+                    EnemyCharacter c = enemyList.get(i);
+                    c.maxHP+=10;
+                    c.HP=c.maxHP;
+                    c.attack+=3;
+                    c.defense+=2;
+                    c.defending=false;
+                }
+            }
+            Random r=new Random();
+            int index = r.nextInt(enemyList.size());
+            EnemyCharacter enemy = enemyList.get(index);
+            enemy.show();
+            System.out.println("————————————————————————————");
+            System.out.println("第"+count+"战斗开始⚔️，你的对手是"+enemy.name+"!");
+//            第一回合
+            int round=1;
+            while(player.isAlive()){
+                System.out.println("————————————————————————————");
+                System.out.println("第"+round+"回合开始！");
+                System.out.println(getHealthBar(player.name,player.HP,player.maxHP));
+                System.out.println(getHealthBar(enemy.name,enemy.HP,enemy.maxHP));
+
+            }
+
+        }
 
     }
 //    创建玩家角色
@@ -67,5 +100,20 @@ public class FightingGame {
         player.skillList.add("强力一击");
         player.skillList.add("生命恢复");
         return player;
+    }
+//    显示血条
+    public String getHealthBar(String name,int HP,int maxHP){
+//        满血状态下打印20个方块
+        int barLength=20;
+        int filled = (int)((HP * 1.0 / maxHP )*barLength);
+        StringBuilder sb=new StringBuilder();
+        sb.append(name).append(": [");
+        for (int i = 0; i < barLength; i++) {
+            if(i<filled){
+                sb.append("█");
+            }else sb.append(" ");
+        }
+        sb.append("]").append(HP).append("/").append(maxHP).append(" HP");
+        return sb.toString();
     }
 }
