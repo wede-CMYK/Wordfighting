@@ -74,6 +74,8 @@ public class Login {
             String rightPassword=u.getPassword();
             if(rightPassword.equals(password)){
                 System.out.println("密码正确！登录成功，游戏启动！！！！");
+                FightingGame fg=new FightingGame();
+                fg.gameStart(username);
                 break;
             }else {
                 System.out.println("密码错误，你还有"+(2-i)+"次机会");
